@@ -17,7 +17,7 @@ class StripeController extends Controller
 {
     public function createCheckoutSession(Request $request)
     {
-        $quantity = $request->input('quantity');
+        $filmCount = $request->input('film_count');
 
         // 1. Initialiser Stripe avec votre clé secrète
         Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
@@ -41,7 +41,7 @@ class StripeController extends Controller
                 'payment_method_types' => ['card'],
                 'line_items' => [[
                     'price' => 'price_1RNqWuK6sHuLW9WSE7wvF08N',
-                    'quantity' => $quantity,
+                    'quantity' => $filmCount,
                 ]],
             ]);
 

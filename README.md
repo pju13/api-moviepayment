@@ -1,66 +1,94 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="200" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# API de Paiement Laravel avec Stripe
 
-## About Laravel
+Cette API Laravel permet de créer une session de paiement avec Stripe pour gérer les locations de films. Elle inclut un endpoint pour créer une session de paiement et un webhook pour écouter les événements de paiement.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Prérequis
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+-   PHP 7.4 ou supérieur
+-   Composer
+-   Node.js et npm
+-   Compte Stripe
+-   Stripe CLI (pour tester les webhooks localement)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Installation
 
-## Learning Laravel
+1. Clonez ce dépôt sur votre machine locale.
+2. Commencez par cette commande pour installer toutes les dépendances PHP nécessaires définies dans votre fichier composer.json. Cela est essentiel pour le bon fonctionnement de Laravel et peut être requis pour certaines configurations ou tâches backend. :
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+    ```bash
+    composer install
+    ```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+3. Copiez le fichier `.env.example` en `.env` et configurez vos variables d'environnement, y compris vos clés Stripe.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+    ```bash
+    cp .env.example .env
+    ```
 
-## Laravel Sponsors
+4. Générez une clé d'application Laravel :
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+    ```bash
+    php artisan key\:generate
+    ```
 
-### Premium Partners
+## Configuration
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+1. Assurez-vous que votre fichier `.env` contient les clés suivantes pour Stripe :
 
-## Contributing
+    ```
+    STRIPE_KEY=votre_clé_stripe
+    STRIPE_SECRET=votre_clé_secrète_stripe
+    STRIPE_WEBHOOK_SECRET=votre_clé_webhook
+    ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+2. Configurez CORS pour accepter les requêtes de votre client React :
 
-## Code of Conduct
+    ```php
+    // Dans le fichier config/cors.php, assurez-vous que votre domaine est autorisé
+    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:5173'), 'http://127.0.0.1:5173'],
+    ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+3. Activez les webhooks Stripe en utilisant la CLI Stripe pour tester localement :
 
-## Security Vulnerabilities
+    ```bash
+    stripe listen --forward-to localhost:8000/api/stripe/webhook
+    ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Utilisation
 
-## License
+1. Démarrez le serveur Laravel :
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    ```bash
+    php artisan serve
+    ```
+
+2. Le frontend React doit envoyer une requête POST à l'endpoint `/api/create-checkout-session` avec la quantité de films à louer.
+
+## Endpoints
+
+-   **POST /api/create-checkout-session** : Crée une session de paiement Stripe. Le corps de la requête doit inclure le nombre de films à louer. Exemple :
+
+    ```json
+    {
+        "film_count": 2
+    }
+    ```
+
+-   **Webhook** : Écoute les événements Stripe pour gérer les succès et les annulations de paiement. Configurez votre compte Stripe pour envoyer des événements à l'URL de votre webhook.
+
+    Exemple de configuration sur Stripe Dashboard : `https://yourdomain.com/api/stripe/webhook`
+
+## Gestion des Événements Stripe
+
+Le webhook écoute les événements suivants :
+
+-   `checkout.session.completed` : Paiement réussi.
+-   `checkout.session.expired` : Session expirée sans paiement.
+
+Le front-end doit être configuré pour persister les données locales avant de rediriger vers la page de paiement Stripe. Après le retour sur votre site, il peut rétablir ces données en fonction de l'état du paiement.
+
+## Tests
+
+Pour tester l'API, vous pouvez utiliser Postman ou tout autre outil de test d'API pour envoyer des requêtes POST à votre endpoint de création de session de paiement.

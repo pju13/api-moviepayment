@@ -33,7 +33,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
  *             mediaType="application/json",
  *             @OA\Schema(
  *                 @OA\Property(
- *                     property="quantity",
+ *                     property="film_count",
  *                     type="integer",
  *                     example="1"
  *                 )
